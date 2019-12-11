@@ -1,6 +1,6 @@
 #### OAuth2
 
-OAuth 关于授权的开放网络标准，关于OAuth2的知识，参考[OAuth2.0](https://oauth.net/2/) 和 [理解OAuth 2.0-阮一峰](http://www.ruanyifeng.com/blog/2014/05/oauth_2_0.html)
+OAuth 关于授权的开放网络标准，关于OAuth2的知识，参考[OAuth2.0](https://tools.ietf.org/html/rfc6749) 和 [理解OAuth 2.0-阮一峰](http://www.ruanyifeng.com/blog/2014/05/oauth_2_0.html)
 
 #### 四种授权模式
 
@@ -11,8 +11,11 @@ OAuth 关于授权的开放网络标准，关于OAuth2的知识，参考[OAuth2.
 
 #### 授权码模式
 
-![图片来自 ](./imgs/1/authorization_model.png)
+![图片来自 ](./imgs/1/authorization_code_model.png)
 
+
+###  密码模式
+![](./1/../imgs/1/password_model.png)
 
 #### 开发环境
  系统：Mac / Win10   两个开发环境交替使用  
@@ -126,7 +129,7 @@ public class OAuth2AuthorizationServerConfig extends AuthorizationServerConfigur
 ```java
 @Configuration
 @EnableResourceServer
-public class OAuth2ResourceServerConfig  extends ResourceServerConfigurerAdapter{
+public class OAuth2ResourceServerConfig  extends  ResourceServerConfigurerAdapter{
 
     @Override
     public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
@@ -147,7 +150,6 @@ public class OAuth2ResourceServerConfig  extends ResourceServerConfigurerAdapter
 #### WebSecurity 配置
 ```java
 @Configuration
-@Order(1)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
