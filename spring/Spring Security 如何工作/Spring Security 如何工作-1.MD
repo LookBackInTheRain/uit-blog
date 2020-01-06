@@ -458,7 +458,6 @@ public class TomcatServletWebServerFactory extends AbstractServletWebServerFacto
 在`getWebServer`方法中创建Tomcat实例并做了一些配置，该方法中的主要调用链 `getWebServer()->prepareContext(tomcat.getHost(), initializers)->configureContext(context, initializersToUse)`，跟踪进入`configureContext(context, initializersToUse)` 方法，其中以`ServletContextInitializer[] initializers` 作为构造参数创建了`TomcatStarter` 实例，并将其添加到Tomcat的声明周期中，在Tomcat 启动时会被调用它的 `onStart(Set<Class<?>> classes,ServletContext context)` 方法，具体的调用在`StandardContext` 的 5139 行左右，我们跟踪进入 `TomcatStarter` 中
 ```java
 class TomcatStarter implements ServletContainerInitializer {
-
 	......
 	TomcatStarter(ServletContextInitializer[] initializers) {
 		this.initializers = initializers;
@@ -526,16 +525,13 @@ public class TomcatServletWebServerFactory extends AbstractServletWebServerFacto
 从上述源码中可以发现`getTomcatWebServer(Tomcat tomcat)` 只是一个简单用 `new` 关键字实例化一个`TomcatWebServer`实例，跟踪进入 `TomcatWebServer` 类
 ```java
 public class TomcatWebServer implements WebServer {
-
 	......
-
 	public TomcatWebServer(Tomcat tomcat, boolean autoStart) {
 		Assert.notNull(tomcat, "Tomcat Server must not be null");
 		this.tomcat = tomcat;
 		this.autoStart = autoStart;
 		initialize();
 	}
-
 	private void initialize() throws WebServerException {
 		logger.info("Tomcat initialized with port(s): " + getPortsDescription(false));
 		synchronized (this.monitor) {
@@ -565,7 +561,6 @@ public class TomcatWebServer implements WebServer {
 				catch (NamingException ex) {
 					// Naming is not enabled. Continue
 				}
-
 				// Unlike Jetty, all Tomcat threads are daemon threads. We create a
 				// blocking non-daemon to stop immediate shutdown
 				startDaemonAwaitThread();
@@ -604,7 +599,6 @@ public class DelegatingFilterProxyRegistrationBean
 `getFilter()` 方法直接`new` 创建并返回`DelegatingFilterProxy` 之后就是各种配置这里就不在赘述，分析到这里`DelegatingFilterProxy` 已经被实例并配置到 `ServletContext` 中。
 
 # 总结
-1. 本篇讲述了`DelegatingFilterProxy`作用
+1. 本篇讲述了`DelegatingFilterProxy`作用。
 2. 从两个角度（传统web.xml方式开发war部署和Spring Boot）分析了 `DelegatingFilterProxy` 的初始化过程。
-3. 在Spring Boot 中还从源码的角度细致的进行跟踪，简单了解Spring Boot的启动流程
-
+3. 在Spring Boot 中还从源码的角度细致的进行跟踪，简单了解Spring Boot的启动流程。
