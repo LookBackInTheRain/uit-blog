@@ -8,7 +8,7 @@
 5. [Spring  boot+Security OAuth2 爬坑日记-5 自定义异常处理](./spring/OAuth2/自定义异常处理-2.MD)
 
 ## Spring Security 系列
-1. [Spring Security 如何工作-1](/spring/SpringSecurityWorker/SpringSecurity如何工作-1.MD)
+1. [Spring Security 如何工作-1 DelegatingFilterProxy 的初始化](/spring/SpringSecurityWorker/SpringSecurity如何工作-1.MD)
 
 ---
 ## 微信公众号
