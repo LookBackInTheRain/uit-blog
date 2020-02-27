@@ -9,7 +9,7 @@
 # DelegatingFilterProxy
 `DelegatingFilterProxy` 是整个Spring Security 过滤器链的入口，是 `FilterChainProxy` 的代理。
 
-# 传统 WAR 构建方式过滤器链的创建
+# 传统 WAR 构建部署方式`DelegatingFilterProxy`的初始化
 过滤器创建需要提到 `@HandlesTypes`  注解和 `ServletContainerInitializer` 接口；Servlet 规范中指出容器启动时通过jar中META-INF/services/javax.servlet.ServletContainerInitializer文件中的规定的并实现`ServletContainerInitializer` 接口的类，通过反射机制实例化这些类并调用onStart(Set\<Class\> cls,ServletContext sc)方法;通常这些类会被`@HandlesTypes` 修饰，在实例化这些类的同时查找`@HandlesTypes` 参数规定的类，将其作为参数传到onStart方法中。这里只是了解下`@HandlesTypes` 和 `ServletContainerInitializer` 的用法，需要了解更多的可以参考 [Servlet 4.0规范 官方文档](https://download.oracle.com/otndocs/jcp/servlet-4-final-eval-spec/index.html)
 
 创建一个ServletContainerInitializer 实现类如下;
@@ -253,7 +253,7 @@ public class DelegatingFilterProxy extends GenericFilterBean {
 ```
 从上述的类图和`DelegatingFilterProxy` 的部分代码可以看出，执行最终逻辑的Filter为`FilterChainProxy`，过滤器链已经初始化完成。接下来分析下Spring Boot 的`DelegatingFilterProxy` 初始化过程
 
-# Spring Boot 过滤器链初始化
+# Spring Boot `DelegatingFilterProxy` 初始化
 
 在 Spring Boot 中 `DelegatingFilterProxy` 初始化在`SecurityFilterAutoConfiguration` 类中完成初始化,在这之前先看一个接口`ServletContextInitializer`关于接口的官方描述如下。
 ```java
