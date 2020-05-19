@@ -4,7 +4,7 @@
 # 带入问题
 1. Spring Security 的过滤器链何时被创建，创建方式等
 2. 过滤器链中的重要各个过滤器功能
-3. 分析传统 Spring WAR（java base config） 构建方式与Spring Boot JAR构建方式过滤器链的创建方式
+3. 分析传统 Spring WAR 构建方式与Spring Boot JAR构建方式过滤器链的创建方式
 
 # DelegatingFilterProxy
 `DelegatingFilterProxy` 是整个Spring Security 过滤器链的入口，是 `FilterChainProxy` 的代理。
@@ -89,7 +89,7 @@ public void onStartup(@Nullable Set<Class<?>> webAppInitializerClasses, ServletC
 
 ![启动流程](./imgs/1/start-up-p.png)
 
-具体过滤器链的配置与实例化的核心代码如下,以下代码删除了部分代码保留了创建springSecurityFilterChain的核心代码，主要看中文注释部分即可，入口在onStart方法
+具体过滤器链入口的配置与实例化的核心代码如下,以下代码删除了部分代码保留了创建springSecurityFilterChain的核心代码，主要看中文注释部分即可，入口在onStart方法
 ```java
 public abstract class AbstractSecurityWebApplicationInitializer
 		implements WebApplicationInitializer {
@@ -276,7 +276,8 @@ public interface ServletContextInitializer {
 
 }
 ```
-官方注释大概意思就是该接口用于编程的方式配置`ServletContext`，如果有类实现了该接口而没有实现`WebApplicationInitializer`的话就不会被`SpringServletContainerInitializer` 检测到，所以Servlet容器启动时，不会自动调用该实现类的onStart()方法。我们看一下`DelegatingFilterProxyRegistrationBean`类的继承关系，该类间接实现了 `ServletContextInitializer`,该类主要用来初始化配置`DelegatingFilterProxy`。通过源码分析一下`DelegatingFilterProxyRegistrationBean` 什么时候的onStart()方法什么时候被调用，这里只做简单分析，并不会将一行的代码的意义都做分析。这里先埋个坑，日后再做这个系列的文章。
+官方注释大概意思就是该接口用于编程的方式配置`ServletContext`，如果有类实现了该接口而没有实现`WebApplicationInitializer`的话就不会被`SpringServletContainerInitializer` 检测到，所以Servlet容器启动时，不会自动调用该实现类的onStart()方法。我们看一下`DelegatingFilterProxyRegistrationBean`类的继承关系，该类间接实现了 `ServletContextInitializer`,该类主要用来初始化配置`DelegatingFilterProxy`。通过源码分析一下`DelegatingFilterProxyRegistrationBean` 什么时候的onStart()方法什么时候被调用，这里只做简单分析，并不会将每一行的代码的意义都做分析。这里先埋个坑，日后再做这个系列的文章。
+
 ![delegatingFileterProxy 类继承关系](./imgs/1/delegatingFileterProxyClass.png)
 
 Spring Boot 启动流程的入口为SpringApplication类的run方法，该方法如下（大部分已被省略......）。我们只重点关注流程，不做各个方法功能的具体分析，在这个方法中我们关注的重点是`refreshContext(context)`这个方法的调用，首先该方法在通过调用`createApplicationContext()` 以反射的方式创建并返回 `AnnotationConfigServletWebServerApplicationContext`  的实例，之后便是调用 `refreshContext(context)` 将 `context` 作为参数传入，通过如下源码可以看出在 `SpringAbblication` 这个类中的 `refreshContext(context)` 方法最后会调用 `AbstractApplicationContext` 的`refresh()`方法。
@@ -458,7 +459,7 @@ public class TomcatServletWebServerFactory extends AbstractServletWebServerFacto
 
 }
 ```
-在`getWebServer`方法中创建Tomcat实例并做了一些配置，该方法中的主要调用链 `getWebServer()->prepareContext(tomcat.getHost(), initializers)->configureContext(context, initializersToUse)`，跟踪进入`configureContext(context, initializersToUse)` 方法，其中以`ServletContextInitializer[] initializers` 作为构造参数创建了`TomcatStarter` 实例，并将其添加到Tomcat的声明周期中，在Tomcat 启动时会被调用它的 `onStart(Set<Class<?>> classes,ServletContext context)` 方法，具体的调用在`StandardContext` 的 5139 行左右，我们跟踪进入 `TomcatStarter` 中
+在`getWebServer`方法中创建Tomcat实例并做了一些配置，该方法中的主要调用链 `getWebServer()->prepareContext(tomcat.getHost(), initializers)->configureContext(context, initializersToUse)`，跟踪进入`configureContext(context, initializersToUse)` 方法，其中以`ServletContextInitializer[] initializers` 作为构造参数创建了`TomcatStarter` 实例，并将其添加到Tomcat的生命周期中，在Tomcat 启动时会被调用它的 `onStart(Set<Class<?>> classes,ServletContext context)` 方法，具体的调用在`StandardContext` 的 5139 行左右，我们跟踪进入 `TomcatStarter` 中
 ```java
 class TomcatStarter implements ServletContainerInitializer {
 	......
@@ -578,7 +579,8 @@ public class TomcatWebServer implements WebServer {
 ```
 在`TomcatWebServer` 的构造函数中执行了`initialize()` 启动 `Tomcat`。分析到这里`Tomcat` 启动，`TomcatStarter` 的`onStart` 方法会被调用，最终`DelegatingFilterProxyRegistrationBean` 的 `onStart` 也会被调用。接下来我们分析当`DelegatingFilterProxyRegistrationBean` 的onStart调用之后 `DelegatingFilterProxy` 在哪里被实例化。
 ![delegatingFileterProxyClass-1](./imgs/1/delegatingFileterProxyClass-1.png)
-根据上图红框圈出几个重要的类，`onStart` 方法被定义在 `RegistrationBean` 中，onStart被调用的时候调用定义在`DynamicRegistrationBean` 中的的 `register(String description, ServletContext servletContext)` 方法，在`register` 中调用`addRegistration()->getFilter()` (部分方法参数省略)。在getFilter定义在`DelegatingFilterProxyRegistrationBean` 类中
+
+根据上图红框圈出几个重要的类，`onStart` 方法被定义在 `RegistrationBean` 中，onStart被调用的时候调用定义在`DynamicRegistrationBean` 中的的 `register(String description, ServletContext servletContext)` 方法，在`register` 中调用`addRegistration()->getFilter()` (部分方法参数省略)。getFilter定义在`DelegatingFilterProxyRegistrationBean` 类中
 ```java
 public class DelegatingFilterProxyRegistrationBean
 		extends AbstractFilterRegistrationBean<DelegatingFilterProxy>
