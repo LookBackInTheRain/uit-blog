@@ -41,7 +41,7 @@
         </tr>
         <tr>
             <td>数据链路层</td>
-            <td rowspan='2'>数据链路层</td>
+            <td rowspan='2'>网络接口层</td>
             <td rowspan='2'>FDDI, Ethernet, Arpanet, PDN, SLIP, PPP,IEEE 802.1A, IEEE 802.2到IEEE 802.1</td>
         </tr>
         <tr>

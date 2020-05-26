@@ -2,14 +2,13 @@
 # Spring Security 
 `DelegatingFilterProxy` 初始化
 # 带入问题
-1. Spring Security 的过滤器链何时被创建，创建方式等
-2. 过滤器链中的重要各个过滤器功能
-3. 分析传统 Spring WAR 构建方式与Spring Boot JAR构建方式过滤器链的创建方式
+1. Spring Security 的过滤器链的入口在哪
+2. 非Spring Boot 项目 （简称 Spring）式与Spring Boot 项目（简称Spring Boot）`DelegatingFilterProxy`的创建方式；
 
 # DelegatingFilterProxy
-`DelegatingFilterProxy` 是整个Spring Security 过滤器链的入口，是 `FilterChainProxy` 的代理。
+`DelegatingFilterProxy` 是整个Spring Security 过滤器链的入口，拦截所有的请求；最后交给 `FilterChainProxy` 处理
 
-# 传统 WAR 构建部署方式`DelegatingFilterProxy`的初始化
+# Spring `DelegatingFilterProxy`的初始化
 过滤器创建需要提到 `@HandlesTypes`  注解和 `ServletContainerInitializer` 接口；Servlet 规范中指出容器启动时通过jar中META-INF/services/javax.servlet.ServletContainerInitializer文件中的规定的并实现`ServletContainerInitializer` 接口的类，通过反射机制实例化这些类并调用onStart(Set\<Class\> cls,ServletContext sc)方法;通常这些类会被`@HandlesTypes` 修饰，在实例化这些类的同时查找`@HandlesTypes` 参数规定的类，将其作为参数传到onStart方法中。这里只是了解下`@HandlesTypes` 和 `ServletContainerInitializer` 的用法，需要了解更多的可以参考 [Servlet 4.0规范 官方文档](https://download.oracle.com/otndocs/jcp/servlet-4-final-eval-spec/index.html)
 
 创建一个ServletContainerInitializer 实现类如下;
@@ -146,7 +145,7 @@ public abstract class AbstractSecurityWebApplicationInitializer
 }
 
 ```
-在onStart() 中 调用insertSpringSecurityFilterChain方法实例化 Filter ，之后调用registerFilter方法 配置Filter并添加到ServletContext中。`ServletContext` 初始化完成后，`ContextLoaderListener` 登场该类实现了`ServletContextListener`和继承了`ContextLoader`并覆盖了`contextInitialized()`方法，此方法会在`ServletContext` 初始完成后执行，具体方法如下，这个方法的具体方法`initWebApplicationContext()`实现在`ContextLoader` 中，这个方法完成了`XmlWebApplicationContext` 的初始化（bean收集等）在这个地方执行实际拦截处理逻辑的`FilterChainProxy` 已配置完成。
+在onStart() 中 调用insertSpringSecurityFilterChain方法实例化 Filter ，之后调用registerFilter方法 配置Filter并添加到ServletContext中。`ServletContext` 初始化完成后，`ContextLoaderListener` 登场该类实现了`ServletContextListener`和继承了`ContextLoader`并覆盖了`contextInitialized()`方法，此方法会在`ServletContext` 初始完成后执行，具体方法如下，这个方法的具体方法`initWebApplicationContext()`实现在`ContextLoader` 中，这个方法完成了`XmlWebApplicationContext` 的初始化（bean收集等）。到这里`FilterChainProxy` 已配置完成。
 ```java
     @Override
 	public void contextInitialized(ServletContextEvent event) {
@@ -276,7 +275,9 @@ public interface ServletContextInitializer {
 
 }
 ```
-官方注释大概意思就是该接口用于编程的方式配置`ServletContext`，如果有类实现了该接口而没有实现`WebApplicationInitializer`的话就不会被`SpringServletContainerInitializer` 检测到，所以Servlet容器启动时，不会自动调用该实现类的onStart()方法。我们看一下`DelegatingFilterProxyRegistrationBean`类的继承关系，该类间接实现了 `ServletContextInitializer`,该类主要用来初始化配置`DelegatingFilterProxy`。通过源码分析一下`DelegatingFilterProxyRegistrationBean` 什么时候的onStart()方法什么时候被调用，这里只做简单分析，并不会将每一行的代码的意义都做分析。这里先埋个坑，日后再做这个系列的文章。
+官方注释大概意思就是该接口用于编程的方式配置`ServletContext`，如果有类实现了该接口而没有实现`WebApplicationInitializer`的话就不会被`SpringServletContainerInitializer` 检测到，所以Servlet容器启动时，不会自动调用该实现类的onStart()方法。
+
+我们看一下`DelegatingFilterProxyRegistrationBean`类的继承关系，该类间接实现了 `ServletContextInitializer`,该类主要用来初始化配置`DelegatingFilterProxy`。通过源码分析一下`DelegatingFilterProxyRegistrationBean` 的onStart()方法什么时候被调用，这里只做简单分析，并不会将每一行的代码的意义都做分析。这里先埋个坑，日后再做这个系列的文章。
 
 ![delegatingFileterProxy 类继承关系](./imgs/1/delegatingFileterProxyClass.png)
 
@@ -361,7 +362,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 }
 ```
 
-`ServletWebServerApplicationContext` 的部分源码如下，该方法中调用链 `onRefresh()->createWebServer()->getWebServerFactory()`，这里使用的是Spring Boot默认的内嵌容器tomcat 所以 `getWebServerFactory()` 返回的的实例为 `TomcatServletWebServerFactory`。
+`ServletWebServerApplicationContext` 的部分源码如下，该方法中调用链 `onRefresh()->createWebServer()->getWebServerFactory()`，这里使用的是Spring Boot默认的内嵌tomcat 所以 `getWebServerFactory()` 返回的的实例为 `TomcatServletWebServerFactory`。
 
 ```java
 public class ServletWebServerApplicationContext extends GenericWebApplicationContext
@@ -605,5 +606,5 @@ public class DelegatingFilterProxyRegistrationBean
 
 # 总结
 1. 本篇讲述了`DelegatingFilterProxy`作用。
-2. 从两个角度（传统web.xml方式开发war部署和Spring Boot）分析了 `DelegatingFilterProxy` 的初始化过程。
+2. 从两个角度（Spring 和Spring Boot）分析了 `DelegatingFilterProxy` 的初始化过程。
 3. 在Spring Boot 中还从源码的角度细致的进行跟踪，简单了解Spring Boot的启动流程。

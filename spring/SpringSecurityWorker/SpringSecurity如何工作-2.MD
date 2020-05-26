@@ -1,12 +1,23 @@
 # Spring Security  `FilterChainProxy` 的初始化 
 在上篇 [SpringSecurity如何工作](./SpringSecurity如何工作-1.MD) 中分析了`DelegatingFilterProxy` 的初始化过程，并知道了`DelegatingFilterProxy`只是整个过滤器链的开端。
-具体的执行逻辑在 `FilterChainProxy` 中。在本篇中着重分析`FilterChainProxy` 的初始化过程。与上篇一样我们分两个方向去做解读。
+具体的执行逻辑在 `FilterChainProxy` 中。在本篇中着重分析`FilterChainProxy` 的初始化过程。与上篇一样我们分两个方向（Spring 和 Spring Boot）去做解读。
+
+# 带入问题
+1. `FilterChainProxy` 作用
+2. `FilterChainProxy` 创建过程
+
+# `FilterChianProxy` 
+```
+Delegates {@code Filter} requests to a list of Spring-managed filter beans  
+// 把请求委托给Spring 管理的filter列表，这些filter 包括 UsernamePasswordAuthenticationFilter,LogoutFilter 等
+```
+
 
 # 了解 `@EnableWebSecurity` 注解
 
 要开启Spring Security 不光要继承 `AbstractSecurityWebApplicationInitializer` 类，还要在配置类中使用`@EnableWebSecurity` 注解开启Spring Security 配置，这个注解导入了三个配置类分别为`WebSecurityConfiguration`、`SpringWebMvcImportSelector`、`OAuth2ImportSelector`，同时该注解还被`@EnableGlobalAuthentication`修饰；我们先了解下导入的三个配置类和`@EnableGlobalAuthentication`的作用
 #### 1. `WebSecurityConfiguration`
-对`WebSecurity`相关的配置进行初始化，包括初 `FilterChainProxy`
+对`WebSecurity`相关的配置进行初始化，包括 `FilterChainProxy`
 #### 2. `SpringWebMvcImportSelector`
 用于导入 `WebMvcSecurityConfiguration` 配置类
 #### 3. `OAuth2ImportSelector`
@@ -15,8 +26,8 @@
 #### 4. `@EnableGlobalAuthentication` 
 该注解导入了`AuthenticationConfiguration`和`ObjectPostProcessorConfiguration`配置类,这些类的主要的配置在下面的文章中再做分析
 
-# 传统 WAR 构建部署方式 `FilterChainProxy` 的初始化
-`FilterChainProxy` 的初始化在 `WebSecurityConfiguration` 类中，该配置类的部分源代码如下，首先执行的是`setFilterChainProxySecurityConfigurer` 方法,之后就是各种@Bean的修饰的方法的执行重点看`springSecurityFilterChain` 方法，具体的分析看注释
+#  Spring  项目 `FilterChainProxy` 的初始化
+`FilterChainProxy` 的初始化在 `WebSecurityConfiguration` 类中，该配置类的部分源代码如下，首先执行的是`setFilterChainProxySecurityConfigurer` 方法,之后就是各种@Bean修饰的方法的执行；重点看`springSecurityFilterChain` 方法，具体的分析看注释
 ```java
 @Configuration
 public class WebSecurityConfiguration implements ImportAware, BeanClassLoaderAware {
