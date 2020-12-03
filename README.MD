@@ -15,11 +15,6 @@
 1. [DelegatingFilterProxy 的初始化](/spring/SpringSecurityWorker/SpringSecurity如何工作-1.MD)
 2. [FilterChainProxy 的初始化](/spring/SpringSecurityWorker/SpringSecurity如何工作-2.MD)
 
-
-## 图片无法查看
-
-更改为阿里云公共DNS(223.5.5.5)
-
 ---
 ## 微信公众号
 

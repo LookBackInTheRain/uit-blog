@@ -353,6 +353,7 @@ public final class WebSecurity extends AbstractConfiguredSecurityBuilder<Filter,
 
 在Spring Boot 中 `FilterChainProxy` 的初始化配置在`SecurityFilterAutoConfiguration` 配置类中的`@AutoConfigureAfter`中被引入。这个自动配置类为`SecurityAutoConfiguration` 这个类引入了被`@EnableWebSecurity`修饰的`WebSecurityEnablerConfiguration` 配置类。到这里基本的步骤就和上述分析的流程一样。
 
+<<<<<<< HEAD
 # FilterChainProxy 分析
 要分析`FilterChianProxy` 首先要了解下 `SecurityFilterChain` 它是一个接口，有一个实现类,类图如下
 ![SecurityFilterChain](./imgs/2/SecurityFilterChain.png)
@@ -361,6 +362,8 @@ public final class WebSecurity extends AbstractConfiguredSecurityBuilder<Filter,
 在上一篇[DelegatingFilterProxy 的初始化](./SpringSecurity如何工作-1.MD) 中我们了解到，`DelegatingFilterProxy` 拦截到请求后交给`FilterChianProxy` 的 `doFilter(...)` 方法处理；如下图所示，收到请求后使用`matches`方法找到与之匹配的过滤器链，之后便链式调用链中的过滤器，最后执行其他的过滤器
 ![SecurityFilterChain](./imgs/2/FP.png)
 
+=======
+>>>>>>> 86f86e16791b262eabdbaaebae6aa7c997a26b37
 # 总结
 1. 从源码的就角度分析了`WebSecurity`配置类的初始化
 2. `FilterChainProxy` 的创建位置及过程
